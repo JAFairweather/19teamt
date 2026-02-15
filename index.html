@@ -83,7 +83,6 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: clamp(48px, 5vw, 62px);
     cursor: pointer;
     transition: transform 0.15s;
   }
@@ -271,67 +270,120 @@ function freq19(step) {
 
 // ============================================================
 //  SVG POT GENERATOR
-//  Each pot is upside-down (opening faces down), with a
-//  slightly different width based on index to give variety.
+//  Realistic clay pots, upside-down, with diameter proportional
+//  to pitch: step 0 (lowest) = widest, step 18 (highest) = narrowest.
+//  Uses radial gradients for 3D shading, clay texture bands,
+//  visible rim thickness, and an interior shadow at the opening.
 // ============================================================
 function makePotSVG(index) {
-  // Vary the pot width: smallest at edges, largest in center
-  const centerDist = Math.abs(index - 9);
-  const baseW = 38 - centerDist * 1.2;
-  const potW = Math.max(24, baseW);
-  const potH = 44;
-  const svgW = potW + 12;
-  const svgH = potH + 6;
+  // Diameter scales inversely with pitch: low note = big pot
+  const t = index / 18; // 0 (lowest) to 1 (highest)
+  const rimDiameter = 72 - t * 38;       // 72px down to 34px
+  const potH = 64 - t * 22;              // 64px tall down to 42px
+  const rimW = rimDiameter;
+  const bodyW = rimW * 0.82;
+  const neckW = rimW * 0.32;
+  const svgW = rimW + 20;
+  const svgH = potH + 14;
   const cx = svgW / 2;
 
-  // Pot is upside down: wide rim at bottom, narrows toward top
-  const rimW = potW;
-  const bodyW = potW * 0.72;
-  const neckW = potW * 0.38;
+  // Each pot gets a unique clay tone
+  const hues = [16,18,20,14,22,19,15,24,17,21,13,23,18,16,20,25,14,19,22];
+  const baseHue = hues[index];
+  const sat = 52 + (index * 3) % 18;
+  const light = 36 + (index * 5) % 12;
 
-  // Clay color palette
-  const hueShift = index * 7;
-  const baseHue = 18 + hueShift % 20;
-  const sat = 55 + (index % 5) * 4;
-  const light = 38 + (index % 4) * 3;
-  const clayMain = `hsl(${baseHue}, ${sat}%, ${light}%)`;
-  const clayDark = `hsl(${baseHue}, ${sat + 5}%, ${light - 10}%)`;
-  const clayLight = `hsl(${baseHue}, ${sat - 10}%, ${light + 14}%)`;
-  const clayRim = `hsl(${baseHue}, ${sat + 8}%, ${light - 5}%)`;
+  const clayBody   = `hsl(${baseHue}, ${sat}%, ${light}%)`;
+  const clayDark   = `hsl(${baseHue}, ${sat+8}%, ${light-14}%)`;
+  const clayMid    = `hsl(${baseHue}, ${sat+2}%, ${light+4}%)`;
+  const clayLight  = `hsl(${baseHue}, ${sat-6}%, ${light+18}%)`;
+  const clayRim    = `hsl(${baseHue}, ${sat+10}%, ${light-6}%)`;
+  const clayShadow = `hsl(${baseHue}, ${sat+12}%, ${light-20}%)`;
 
-  const gradId = `clay${index}`;
+  const gid = `cg${index}`;   // radial gradient
+  const sid = `cs${index}`;   // specular highlight
+  const tid = `ct${index}`;   // texture filter
+
+  // Pot profile points (upside-down: neck/closed end at top, open rim at bottom)
+  const neckY   = 4;
+  const shoulderY = potH * 0.22;
+  const bellyY  = potH * 0.55;
+  const hipY    = potH * 0.78;
+  const rimTopY = potH - 7;
+  const rimBotY = potH;
+
+  // Belly is the widest point (wider than rim for a realistic pot shape)
+  const bellyW = bodyW * 1.12;
 
   return `<svg viewBox="0 0 ${svgW} ${svgH}" width="${svgW}" height="${svgH}" xmlns="http://www.w3.org/2000/svg">
     <defs>
-      <linearGradient id="${gradId}" x1="0" y1="0" x2="1" y2="0">
-        <stop offset="0%" stop-color="${clayDark}"/>
-        <stop offset="35%" stop-color="${clayMain}"/>
-        <stop offset="60%" stop-color="${clayLight}"/>
+      <!-- 3D radial shading -->
+      <radialGradient id="${gid}" cx="0.38" cy="0.35" r="0.65">
+        <stop offset="0%"  stop-color="${clayLight}"/>
+        <stop offset="30%" stop-color="${clayMid}"/>
+        <stop offset="70%" stop-color="${clayBody}"/>
         <stop offset="100%" stop-color="${clayDark}"/>
-      </linearGradient>
+      </radialGradient>
+      <!-- Specular highlight -->
+      <radialGradient id="${sid}" cx="0.33" cy="0.30" r="0.35">
+        <stop offset="0%"  stop-color="rgba(255,255,240,0.25)"/>
+        <stop offset="100%" stop-color="rgba(255,255,240,0)"/>
+      </radialGradient>
+      <!-- Clay grain texture -->
+      <filter id="${tid}" x="0" y="0" width="100%" height="100%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" seed="${index * 7 + 3}" result="noise"/>
+        <feColorMatrix type="saturate" values="0" in="noise" result="gray"/>
+        <feBlend in="SourceGraphic" in2="gray" mode="overlay" result="textured"/>
+        <feComposite in="textured" in2="SourceGraphic" operator="in"/>
+      </filter>
     </defs>
-    <!-- Pot body (upside-down: neck at top, rim at bottom) -->
+
+    <!-- Pot body path -->
     <path d="
-      M ${cx - neckW/2} 3
-      Q ${cx - neckW/2 - 1} ${potH * 0.25}, ${cx - bodyW/2} ${potH * 0.45}
-      Q ${cx - bodyW/2 - 3} ${potH * 0.7}, ${cx - rimW/2} ${potH * 0.88}
-      L ${cx - rimW/2} ${potH}
-      L ${cx + rimW/2} ${potH}
-      L ${cx + rimW/2} ${potH * 0.88}
-      Q ${cx + bodyW/2 + 3} ${potH * 0.7}, ${cx + bodyW/2} ${potH * 0.45}
-      Q ${cx + neckW/2 + 1} ${potH * 0.25}, ${cx + neckW/2} 3
+      M ${cx - neckW/2} ${neckY}
+      C ${cx - neckW/2} ${shoulderY - 2}, ${cx - bellyW/2 - 4} ${shoulderY}, ${cx - bellyW/2} ${bellyY}
+      C ${cx - bellyW/2 + 2} ${hipY + 2}, ${cx - rimW/2 - 1} ${hipY}, ${cx - rimW/2} ${rimTopY}
+      L ${cx - rimW/2} ${rimBotY}
+      L ${cx + rimW/2} ${rimBotY}
+      L ${cx + rimW/2} ${rimTopY}
+      C ${cx + rimW/2 + 1} ${hipY}, ${cx + bellyW/2 - 2} ${hipY + 2}, ${cx + bellyW/2} ${bellyY}
+      C ${cx + bellyW/2 + 4} ${shoulderY}, ${cx + neckW/2} ${shoulderY - 2}, ${cx + neckW/2} ${neckY}
       Z
-    " fill="url(#${gradId})" stroke="${clayRim}" stroke-width="0.8" class="pot-body"/>
-    <!-- Rim band -->
-    <rect x="${cx - rimW/2}" y="${potH - 5}" width="${rimW}" height="5"
-          rx="1" fill="${clayRim}" opacity="0.7"/>
-    <!-- Subtle texture lines -->
-    <line x1="${cx - bodyW/2 + 3}" y1="${potH * 0.5}" x2="${cx + bodyW/2 - 3}" y2="${potH * 0.5}"
-          stroke="${clayDark}" stroke-width="0.4" opacity="0.3"/>
-    <line x1="${cx - bodyW/2 + 5}" y1="${potH * 0.6}" x2="${cx + bodyW/2 - 5}" y2="${potH * 0.6}"
-          stroke="${clayDark}" stroke-width="0.3" opacity="0.25"/>
-    <line x1="${cx - neckW/2 + 2}" y1="${potH * 0.3}" x2="${cx + neckW/2 - 2}" y2="${potH * 0.3}"
-          stroke="${clayLight}" stroke-width="0.3" opacity="0.3"/>
+    " fill="url(#${gid})" stroke="${clayRim}" stroke-width="0.7" filter="url(#${tid})" class="pot-body"/>
+
+    <!-- Specular highlight overlay -->
+    <path d="
+      M ${cx - neckW/2} ${neckY}
+      C ${cx - neckW/2} ${shoulderY - 2}, ${cx - bellyW/2 - 4} ${shoulderY}, ${cx - bellyW/2} ${bellyY}
+      C ${cx - bellyW/2 + 2} ${hipY + 2}, ${cx - rimW/2 - 1} ${hipY}, ${cx - rimW/2} ${rimTopY}
+      L ${cx - rimW/2} ${rimBotY}
+      L ${cx + rimW/2} ${rimBotY}
+      L ${cx + rimW/2} ${rimTopY}
+      C ${cx + rimW/2 + 1} ${hipY}, ${cx + bellyW/2 - 2} ${hipY + 2}, ${cx + bellyW/2} ${bellyY}
+      C ${cx + bellyW/2 + 4} ${shoulderY}, ${cx + neckW/2} ${shoulderY - 2}, ${cx + neckW/2} ${neckY}
+      Z
+    " fill="url(#${sid})" stroke="none"/>
+
+    <!-- Rim band (thick rolled edge at the opening) -->
+    <ellipse cx="${cx}" cy="${rimBotY}" rx="${rimW/2}" ry="3.5"
+             fill="${clayRim}" stroke="${clayShadow}" stroke-width="0.5"/>
+    <!-- Inner dark of the opening -->
+    <ellipse cx="${cx}" cy="${rimBotY}" rx="${rimW/2 - 3}" ry="2.2"
+             fill="${clayShadow}" opacity="0.7"/>
+
+    <!-- Wheel-thrown texture rings -->
+    <ellipse cx="${cx}" cy="${bellyY - 4}" rx="${bellyW/2 - 2}" ry="1.2"
+             fill="none" stroke="${clayDark}" stroke-width="0.4" opacity="0.25"/>
+    <ellipse cx="${cx}" cy="${bellyY + 5}" rx="${bellyW/2 - 3}" ry="1.0"
+             fill="none" stroke="${clayDark}" stroke-width="0.35" opacity="0.2"/>
+    <ellipse cx="${cx}" cy="${shoulderY + 6}" rx="${(bellyW/2 + neckW/2)/2 - 1}" ry="0.9"
+             fill="none" stroke="${clayLight}" stroke-width="0.3" opacity="0.2"/>
+    <ellipse cx="${cx}" cy="${hipY + 2}" rx="${(rimW/2 + bellyW/2)/2 - 1}" ry="1.1"
+             fill="none" stroke="${clayDark}" stroke-width="0.35" opacity="0.18"/>
+
+    <!-- Knob at the top (base of real pot, now at top since inverted) -->
+    <circle cx="${cx}" cy="${neckY - 1}" r="${neckW * 0.22}"
+            fill="${clayRim}" stroke="${clayShadow}" stroke-width="0.4"/>
   </svg>`;
 }
 
@@ -341,8 +393,10 @@ function makePotSVG(index) {
 const row = document.getElementById('potsRow');
 
 for (let i = 0; i < NUM_POTS; i++) {
-  const centerDist = Math.abs(i - 9);
-  const stringLen = 40 + centerDist * 12 + Math.sin(i * 1.3) * 15;
+  // Strings: shorter for bigger (lower) pots, longer for smaller (higher)
+  // so the rim openings roughly align along a gentle curve
+  const t = i / 18;
+  const stringLen = 30 + t * 50 + Math.sin(i * 0.9) * 10;
 
   const unit = document.createElement('div');
   unit.className = 'pot-unit';
