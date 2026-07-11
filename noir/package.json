@@ -1,0 +1,15 @@
+{
+  "name": "noir",
+  "version": "0.1.0",
+  "description": "Noir — a spycraft mystery game where information is the board. Cases you unlock. Assets you burn.",
+  "type": "module",
+  "scripts": {
+    "smoke": "node test/smoke.mjs",
+    "serve": "npx http-server -c-1 . -o /client/"
+  },
+  "dependencies": {
+    "nostr-tools": "^2.0.0",
+    "ws": "^8.0.0"
+  },
+  "license": "MIT"
+}
