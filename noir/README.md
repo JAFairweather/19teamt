@@ -81,8 +81,8 @@ the full provable-vs-trusted split.
 
 - **M1** ✅ The Wheel + canned case over the real protocol
 - **M2** Grant-Index-as-notebook everywhere, nsec device recovery mid-case, NIP-49 keys at rest, live relays
-- **M3** The Director: Claude narrative + interrogations, casegen from seeds, structured verdicts
-- **M4** Duotone imagery on Blossom, photo-analysis puzzles
+- **M3** The Director: Claude narrative + interrogations, casegen from seeds, structured verdicts; FLUX stills with duotone + Ken Burns motion
+- **M4** Line-draw engine spike; encrypted imagery on Blossom, photo-analysis puzzles, reveal choreography
 - **M5** All four eras, Meridian overland layer, homages, surveillance minigame
 - **M6** Multiplayer: fragment dealing, trades, watermark leak detection, betrayal
 

@@ -23,10 +23,13 @@ the natural business layer (cases-as-a-service), not a fork.
   drawing frame-to-frame between keyframes as the narrative streams. The
   expensive model stays out of the render loop; the line aesthetic stays
   deterministic and ours (same principle as the duotone pass).
-- **Stepping stones:** (1) M4 ships FLUX stills + deterministic Ken Burns
-  motion (pan/zoom/settle) in the client — player value now; (2) spike the
-  line-draw engine when needed: edge extraction → stroke vectorization →
-  stroke interpolation between consecutive stills.
+- **Stepping stones:** (1) **M3** ships FLUX stills + deterministic Ken
+  Burns motion (pan/zoom/settle) in the client, alongside the Director —
+  the story animates from the first AI-driven case; (2) **after M3**, spike
+  the line-draw engine: edge extraction → stroke vectorization → stroke
+  interpolation between consecutive stills. M4 then carries the rest of the
+  imagery milestone (encrypted Blossom delivery, photo-analysis puzzles,
+  drum/image reveal choreography) plus whatever the spike proves out.
 - **Design consequence today:** keep `generateScene` stateless and
   brief-driven, but structure scene briefs as evolving *scene state*
   (location, actors, time, weather, focus) rather than one-shot prompts —
