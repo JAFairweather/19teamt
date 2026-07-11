@@ -16,17 +16,22 @@ the natural business layer (cases-as-a-service), not a fork.
   The deterministic duotone post-process in `client/art.mjs` remains
   mandatory — never ship raw model output — so backend swaps are invisible
   to the player.
-- **Long-term direction (v2+):** the imagery should become beautiful,
-  monochromatic, almost line-art, **animating as the story is told** — a
-  renderer that takes the streaming narrative text and renders the world
-  from it continuously. That likely means either a real-time image/video
-  model behind the same seam (evaluate as the field moves: distilled
-  real-time diffusion, streaming video models) or our own lightweight
-  world-model/procedural line-art engine driven by scene state.
+- **Long-term direction (v2+):** beautiful, monochromatic, almost line-art
+  imagery **animating as the story is told**. The intended architecture: a
+  **procedural line-draw engine, driven by FLUX stills** — stills act as
+  keyframes; the engine extracts/edges them into line work and evolves the
+  drawing frame-to-frame between keyframes as the narrative streams. The
+  expensive model stays out of the render loop; the line aesthetic stays
+  deterministic and ours (same principle as the duotone pass).
+- **Stepping stones:** (1) M4 ships FLUX stills + deterministic Ken Burns
+  motion (pan/zoom/settle) in the client — player value now; (2) spike the
+  line-draw engine when needed: edge extraction → stroke vectorization →
+  stroke interpolation between consecutive stills.
 - **Design consequence today:** keep `generateScene` stateless and
   brief-driven, but structure scene briefs as evolving *scene state*
-  (location, actors, time, weather, focus) rather than one-shot prompts, so
-  a streaming renderer can consume the same input later. Static images are
+  (location, actors, time, weather, focus) rather than one-shot prompts —
+  successive keyframes must be *coherent evolutions*, not unrelated shots,
+  or the line interpolation has nothing to draw between. Static images are
   a degradation path, not the architecture.
 
 ## 3. Tradecraft view — **yes, as a toggle**
