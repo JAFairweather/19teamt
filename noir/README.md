@@ -86,4 +86,8 @@ the full provable-vs-trusted split.
 - **M5** All four eras, Meridian overland layer, homages, surveillance minigame
 - **M6** Multiplayer: fragment dealing, trades, watermark leak detection, betrayal
 
+The spec's §13 open decisions are resolved in `docs/DECISIONS.md`
+(GM: local-first + hosted · imagery: FLUX now, streaming line-art world
+long-term · tradecraft view: toggle · cases: 60–90 min · first era: Berlin).
+
 License: MIT (app code). Vendored `lib/` is CC0 from the protocol repo.
